@@ -1,0 +1,46 @@
+
+name: Yale mailtest
+
+on:
+    schedule:
+# 15:00 UTC 17:00 ( summer time )
+        - cron:  '00 15 27 * *'
+
+jobs:
+  mailtest:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+      with:
+          ref: scheduled
+    # Runs a single command using the runners shell
+    - name: Create mail attachment
+      run: echo -e "This is is a test file\njust to check if\nsending emails works\nfor the yale locker" > ./mailattach.txt
+
+    - name: Run /bin/false to trigger email sending
+      run: /bin/false
+
+    - name: Send mail
+      if: failure()
+      uses: dawidd6/action-send-mail@v2
+      with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Yale autolock testing of email sending
+          # Literal body:
+          body: Just ignore this email. It is a test
+          # Read file contents as body:
+          #body: file://README.md
+          to: ${{secrets.MAIL_EMAIL}}
+          from: ${{secrets.MAIL_FROMEMAIL}}
+          # Optional content type (defaults to text/plain):
+          #content_type: text/html
+          content_type: text/plain
+          # Optional attachments:
+          attachments: ./mailattach.txt
