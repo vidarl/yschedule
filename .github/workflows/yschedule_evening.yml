@@ -1,0 +1,59 @@
+
+name: Yale scheduler
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+#on:
+#    push:
+#        branches: [ yschedule ]
+on:
+    schedule:
+        # 16:50 UTC is 18:50 ( summer time )
+        - cron:  '50 16 * * *'
+
+jobs:
+    yschedule:
+        # The type of runner that the job will run on
+        runs-on: ubuntu-latest
+
+        # Steps represent a sequence of tasks that will be executed as part of the job
+        steps:
+            - name: Get source
+              env: # Set the secret as an input
+                  VTOKEN: ${{ secrets.VTOKEN }}
+              run: git init && git pull https://${VTOKEN}@github.com/vidarl/yale.git scheduled
+
+            # Runs a single command using the runners shell
+            - name: Run scheduler
+              run: prototype/curl/scheduleLockDoor.sh
+              env:
+                  username: "${{ secrets.YALE_USERNAME }}"
+                  password: "${{ secrets.YALE_PASSWORD }}"
+                  access_token_file: "var/token.conf"
+                  output_log: "false"
+                  log_file: "var/yale.log"
+                  lock_period: "19:00-23:50"
+                  lock_period_lock_address: "${{ secrets.YALE_LOCKADDRESS }}"
+                  lock_period_grace_period: "30"
+                  lock_period_log_file: "var/scheduler.log"
+
+            - name: Send mail
+              if: failure()
+              uses: dawidd6/action-send-mail@v2
+              with:
+                  server_address: smtp.gmail.com
+                  server_port: 465
+                  username: ${{secrets.MAIL_USERNAME}}
+                  password: ${{secrets.MAIL_PASSWORD}}
+                  subject: Yale autolock failed - evening
+                  # Literal body:
+                  body: Build job of ${{github.repository}} failed!
+                  # Read file contents as body:
+                  #body: file://README.md
+                  to: ${{secrets.MAIL_EMAIL}}
+                  from: ${{secrets.MAIL_FROMEMAIL}}
+                  # Optional content type (defaults to text/plain):
+                  #content_type: text/html
+                  content_type: text/plain
+                  # Optional attachments:
+                  attachments: prototype/curl/var/yale.log

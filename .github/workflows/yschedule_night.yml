@@ -9,7 +9,8 @@ name: Yale scheduler
 on:
     schedule:
         # 16:50 UTC is 18:50 ( summer time )
-        - cron:  '50 16 * * *'
+        # 22:15 UTC is 00:15 ( summer time )
+        - cron:  '15 22 * * *'
 
 jobs:
     yschedule:
@@ -32,9 +33,9 @@ jobs:
                   access_token_file: "var/token.conf"
                   output_log: "false"
                   log_file: "var/yale.log"
-                  lock_period: "19:00-23:50"
+                  lock_period: "00:15-05:15"
                   lock_period_lock_address: "${{ secrets.YALE_LOCKADDRESS }}"
-                  lock_period_grace_period: "30"
+                  lock_period_grace_period: "15"
                   lock_period_log_file: "var/scheduler.log"
 
             - name: Send mail
@@ -45,7 +46,7 @@ jobs:
                   server_port: 465
                   username: ${{secrets.MAIL_USERNAME}}
                   password: ${{secrets.MAIL_PASSWORD}}
-                  subject: Yale autolock failed
+                  subject: Yale autolock failed - night
                   # Literal body:
                   body: Build job of ${{github.repository}} failed!
                   # Read file contents as body:
