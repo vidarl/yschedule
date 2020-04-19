@@ -30,7 +30,7 @@ jobs:
                   username: "${{ secrets.YALE_USERNAME }}"
                   password: "${{ secrets.YALE_PASSWORD }}"
                   access_token_file: "var/token.conf"
-                  output_log: "true"
+                  output_log: "false"
                   log_file: "var/yale.log"
                   lock_period: "19:00-23:50"
                   lock_period_lock_address: "${{ secrets.YALE_LOCKADDRESS }}"
